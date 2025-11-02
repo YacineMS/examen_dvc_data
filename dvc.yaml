@@ -1,0 +1,57 @@
+stages:
+  generate_dataset:
+    cmd: python src/make_dataset.py
+    outs:
+      - data/raw_data/raw_data.csv
+
+  preprocess:
+    cmd: python src/preprocess_data.py
+    deps:
+      - data/raw_data/raw_data.csv
+      - src/preprocess_data.py
+    outs:
+      - data/processed/X_train.csv
+      - data/processed/X_test.csv
+      - data/processed/y_train.csv
+      - data/processed/y_test.csv
+
+  normalize:
+    cmd: python src/normalization.py
+    deps:
+      - data/processed/X_train.csv
+      - data/processed/X_test.csv
+      - src/normalization.py
+    outs:
+      - data/processed/X_train_normalized.csv
+      - data/processed/X_test_normalized.csv
+
+  gridsearch:
+    cmd: python src/grid_search_model.py
+    deps:
+      - data/processed/X_train_normalized.csv
+      - data/processed/y_train.csv
+      - src/grid_search_model.py
+    outs:
+      - models/best_model.pkl
+
+  train_model:
+    cmd: python src/train_model.py
+    deps:
+      - data/processed/X_train_normalized.csv
+      - data/processed/y_train.csv
+      - models/best_model.pkl
+      - src/train_model.py
+    outs:
+      - models/final_model.pkl
+
+  evaluate:
+    cmd: python src/evaluate_model.py
+    deps:
+      - data/processed/X_test_normalized.csv
+      - data/processed/y_test.csv
+      - models/final_model.pkl
+      - src/evaluate_model.py
+    outs:
+      - models/data/predictions.csv
+      - metrics/scores.json
+
